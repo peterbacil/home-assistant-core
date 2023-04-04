@@ -9,6 +9,7 @@ from homeassistant.components.tts import CONF_LANG, PLATFORM_SCHEMA, Provider
 from .const import DOMAIN
 
 CONF_GENDER = "gender"
+CONF_AUDIO_OUTPUT = "audio_output"
 
 SUPPORT_LANGUAGES = list({key[0] for key in MAP_VOICE})
 
@@ -87,12 +88,15 @@ class CloudProvider(Provider):
     @property
     def supported_options(self):
         """Return list of supported options like voice, emotion."""
-        return [CONF_GENDER]
+        return [CONF_GENDER, CONF_AUDIO_OUTPUT]
 
     @property
     def default_options(self):
         """Return a dict include default options."""
-        return {CONF_GENDER: self._gender}
+        return {
+            CONF_GENDER: self._gender,
+            CONF_AUDIO_OUTPUT: AudioOutput.MP3,
+        }
 
     async def async_get_tts_audio(self, message, language, options=None):
         """Load TTS from NabuCasa Cloud."""
@@ -102,9 +106,9 @@ class CloudProvider(Provider):
                 message,
                 language,
                 gender=options[CONF_GENDER],
-                output=AudioOutput.MP3,
+                output=options[CONF_AUDIO_OUTPUT],
             )
         except VoiceError:
             return (None, None)
 
-        return ("mp3", data)
+        return (str(options[CONF_AUDIO_OUTPUT]), data)
